@@ -1,0 +1,14 @@
+Codex Fleet 0.1.0 Windows package
+
+Node.js v22.23.2 Windows x64
+Official distribution: https://nodejs.org/dist/v22.23.2/win-x64/node.exe
+SHA256: 0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4
+The complete Node.js and bundled dependency license notices are included in runtime/LICENSE.
+
+Tailscale 1.104.1 Windows amd64 installer
+Official distribution: https://pkgs.tailscale.com/stable/tailscale-setup-1.104.1-amd64.msi
+The unmodified installer is digitally signed by Tailscale Inc. The installer contains its product/license notices. Source license: https://github.com/tailscale/tailscale/blob/main/LICENSE
+Use of Tailscale online services remains subject to its applicable terms: https://tailscale.com/terms
+
+Codex and Git are NOT redistributed. The node uses the already installed local applications and login.
+Ruflo is NOT a runtime dependency and no Ruflo source code is copied into this package. Its documentation informed workflow and provenance design only.

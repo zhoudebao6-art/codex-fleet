@@ -1,0 +1,10 @@
+"use client";
+import {useEffect,useState} from 'react';
+import {api,mutation,errorText} from './api';
+import {Notice} from './ui';
+type Owner={profile:string;nodeId:string;threadId:string;title?:string};
+export default function SkillOwners({profiles,nodes,editable}:{profiles:{id:string;name:string}[];nodes:{id:string;name:string;code?:string}[];editable:boolean}){
+ const [owners,setOwners]=useState<Owner[]>([]),[bindings,setBindings]=useState<Owner[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState(false);
+ useEffect(()=>{let live=true;Promise.all([api<{owners:Owner[]}>('/v1/skill-owners'),api<{settings:{localControllers?:Owner[]}}>('/v1/delivery/settings')]).then(([a,b])=>{if(live){setOwners(a.owners);setBindings(b.settings?.localControllers||[]);}}).catch(e=>live&&setError(errorText(e)));return()=>{live=false;};},[]);
+ return <section className="delivery-controller-settings"><h3>技能负责人</h3><p className="muted">改进要求直接交给这里的原总控。制作设备继续使用各自技能。</p>{error&&<Notice>{error}</Notice>}{profiles.map(p=>{const owner=owners.find(o=>o.profile===p.id);const choices=[...bindings.filter(o=>o.profile===p.id),...(owner&&!bindings.some(b=>b.profile===p.id&&b.nodeId===owner.nodeId&&b.threadId===owner.threadId)?[owner]:[])];return <label key={p.id}>{p.name}<select aria-label={`${p.name}主负责总控`} disabled={!editable||busy} value={owner?`${owner.nodeId}/${owner.threadId}`:''} onChange={e=>{const o=choices.find(o=>`${o.nodeId}/${o.threadId}`===e.target.value);setOwners(old=>[...old.filter(o=>o.profile!==p.id),...(o?[o]:[])]);setSaved(false);}}><option value="">选择已绑定的原总控</option>{choices.map(o=><option key={`${o.nodeId}/${o.threadId}`} value={`${o.nodeId}/${o.threadId}`}>{nodes.find(n=>n.id===o.nodeId)?.code||nodes.find(n=>n.id===o.nodeId)?.name||o.nodeId} · {o.title||'原总控'}</option>)}</select></label>;})}{editable&&<button className="button secondary" disabled={busy} onClick={async()=>{setBusy(true);try{await mutation('/v1/skill-owners',{owners});setError('');setSaved(true);}catch(e){setError(errorText(e));}finally{setBusy(false);}}}>{busy?'正在保存':saved?'已保存':'保存负责人'}</button>}</section>;
+}

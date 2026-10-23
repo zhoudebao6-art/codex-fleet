@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
+import {Miniflare} from 'miniflare';
+import {sync,submit} from '../tasks.mjs';
+import {createBackup,downloadBackup} from '../backups.mjs';
+import {withControllerTick} from '../controller-recovery.mjs';
+import {hash,json,uid,now} from '../util.mjs';
+test('production D1 atomically budgets simultaneous native claims, fences writes and snapshots files',async()=>{
+ const mf=new Miniflare({modules:true,script:'export default {fetch(){return new Response("ok")}}',compatibilityDate:'2026-05-15',d1Databases:{DB:'reliability'},r2Buckets:['BUCKET'],d1Persist:false,r2Persist:false});
+ try{const db=await mf.getD1Database('DB'),bucket=await mf.getR2Bucket('BUCKET');const dir=fileURLToPath(new URL('../../../drizzle/',import.meta.url));
+  for(const name of fs.readdirSync(dir).filter(n=>n.endsWith('.sql')).sort())for(const sql of fs.readFileSync(dir+'/'+name,'utf8').split(/--> statement-breakpoint|;\s*(?:\r?\n|$)/).map(s=>s.trim()).filter(Boolean))await db.prepare(sql).run();
+  const run=(sql,...args)=>db.prepare(sql).bind(...args).run(),admin={id:'admin',admin:true,browser:false};
+  const caps={ready:true,parallelExecution:true,conversationReady:true,conversationDispatch:true,desktopSessionBridge:true,conversationSlots:4,maxRunning:4,projects:['workspace'],accountFingerprint:'a'.repeat(64)};
+  const nodes=['a','b'].map(id=>({id,projects:'["workspace"]',admin:false,browser:false}));
+  for(const n of nodes)await run('INSERT INTO nodes(id,name,token_hash,projects,account_group,fingerprint,last_seen,capabilities) VALUES(?,?,?,?,?,?,?,?)',n.id,n.id,hash(n.id),n.projects,'shared',caps.accountFingerprint,now(),json(caps));
+  await run("INSERT INTO settings VALUES('default_group_limit','1')");
+  for(const n of nodes)await submit(db,admin,{id:uid(),targetNode:n.id,project:'workspace',prompt:'isolated D1 fixture',intent:'conversation',requireDesktop:true,mode:'execute',worktree:false});
+  const polled=await Promise.all(nodes.map(n=>sync(db,n,{events:[],capabilities:caps})));assert.equal(polled.reduce((s,p)=>s+p.tasks.length,0),1);
+  assert.equal((await db.prepare("SELECT count(*) n FROM tasks WHERE status='claimed'").first()).n,1);
+  await run("INSERT INTO settings VALUES('delivery_controller',?)",json({controller:'a',excludedNodes:[]}));
+  await withControllerTick(db,nodes[0],async guarded=>{assert.equal((await withControllerTick(db,nodes[0],async()=>{throw Error('overlap');})).busy,true);await guarded.prepare("INSERT INTO settings VALUES('guarded-write','true')").run();return {operations:[]};});
+  assert.equal((await db.prepare("SELECT value FROM settings WHERE key='guarded-write'").first()).value,'true');
+  const bytes=Buffer.from('D1 and R2 actual recovery bytes'),sha=hash(bytes),key='fleet/test/chunk';await bucket.put(key,bytes);
+  await run("INSERT INTO files(id,project,sha,size,name,status,offset,owner,created,updated) VALUES('file','workspace',?,?,'proof.txt','complete',?,'admin',?,?)",sha,bytes.length,bytes.length,now(),now());
+  await run("INSERT INTO file_chunks VALUES('workspace',?,0,?,?,?)",sha,bytes.length,key,sha);
+  const backup=await createBackup(db,admin,{id:'d1-backup'});assert.equal(backup.files,1);
+  const stream=await downloadBackup(db,bucket,admin,backup.id),data=await stream.text(),records=data.trim().split('\n').map(JSON.parse);assert.equal(records.at(-1).type,'end');assert.equal(records.at(-1).sha256,hash(data.slice(0,data.lastIndexOf('{"type":"end"'))));assert.equal(records.filter(r=>r.type==='row').length,backup.rows);
+  assert.ok(records.some(r=>r.type==='blob'&&Buffer.from(r.data,'base64').equals(bytes)));
+ }finally{await mf.dispose();}
+});

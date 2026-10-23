@@ -1,0 +1,167 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792379640847,
+      "tag": "0000_broken_shen",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792380594207,
+      "tag": "0001_deep_talisman",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792381617294,
+      "tag": "0002_magical_the_anarchist",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792392660872,
+      "tag": "0003_desktop_directory",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792392662398,
+      "tag": "0004_human_interactions",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792392663691,
+      "tag": "0005_project_workspaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792393621634,
+      "tag": "0006_sequential_automations",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792398346949,
+      "tag": "0007_device_organization",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792398575257,
+      "tag": "0008_node_upgrade_actions",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792403058027,
+      "tag": "0009_group_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792412235233,
+      "tag": "0010_invitations",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1792461360660,
+      "tag": "0011_workspace_catalog",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1792474400000,
+      "tag": "0012_parallel_workflow_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "6",
+      "when": 1792480000000,
+      "tag": "0013_power_control",
+      "breakpoints": true
+    },
+    {
+      "tag": "0014_delivery_center",
+      "breakpoints": true,
+      "idx": 14,
+      "when": 1792492800000,
+      "version": "6"
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1792515000000,
+      "tag": "0015_local_delivery_controllers",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "breakpoints": true,
+      "tag": "0016_delivery_loop",
+      "when": 1792521000000,
+      "version": "6"
+    },
+    {
+      "when": 1792522500000,
+      "version": "6",
+      "idx": 17,
+      "tag": "0017_delivery_native_relays",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1792540800000,
+      "tag": "0018_unattended_skill_cycles",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1792544400000,
+      "tag": "0019_skill_phase_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1792548000000,
+      "tag": "0020_skill_maintenance_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1792551600000,
+      "tag": "0021_business_backups",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1792562400000,
+      "tag": "0022_case_lifecycle",
+      "breakpoints": true
+    }
+  ]
+}

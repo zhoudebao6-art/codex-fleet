@@ -1,0 +1,10 @@
+{
+  "id": "project-change-001",
+  "project": "workspace",
+  "steps": [
+    {"key":"develop","target":"pc-a","role":"developer","prompt":"Implement the specifically authorized change. Commit the result and produce a Git bundle if no shared remote is available. Report tests and full commit hash.","acceptance":"Review concrete diff, tests and deliverables before acceptance."},
+    {"key":"review","target":"pc-b","role":"reviewer","dependsOn":["develop"],"prompt":"Read task project-change-001-develop through fleet_status. Obtain its exact commit or artifact, review the change, and report actionable findings with file and line evidence.","acceptance":"Review must name the exact candidate commit and concrete findings."},
+    {"key":"fix","target":"pc-a","role":"fixer","dependsOn":["review"],"prompt":"Read the development and review tasks. Obtain the development commit before editing. Address confirmed findings and report the tested candidate commit; if no fixes are needed, explain with evidence.","acceptance":"Findings resolved or explicitly justified, tests pass on identified commit."},
+    {"key":"integrate","target":"pc-b","role":"integrator","dependsOn":["fix"],"prompt":"Retrieve the approved candidate commit from project-change-001-fix. Prepare a separate integration worktree. Run the project tests and report conflicts or results. Publishing or updating the main branch follows the user project policy.","acceptance":"Integration diff and tests inspected; record final commit and remaining blockers."}
+  ]
+}

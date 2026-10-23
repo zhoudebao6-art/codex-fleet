@@ -1,0 +1,1 @@
+ALTER TABLE `files` ADD `generation` integer DEFAULT 0 NOT NULL;

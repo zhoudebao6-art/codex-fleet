@@ -1,0 +1,18 @@
+"use client";
+import {useCallback,useEffect,useRef,useState} from 'react';
+import {RefreshCw,ShieldCheck,ArrowRight} from 'lucide-react';
+import {api,mutation,errorText,time,uid} from './api';
+import {Modal,Notice,Busy} from './ui';
+type Recovery={configured:boolean;controller:string;name:string;revision:string;runtime:{label:string;reason?:string};health?:{at:string};canTransfer:boolean;blockers:string[];candidates:{id:string;name:string;ready:boolean;reason?:string;profiles:string[]}[];batches:{id:string;name:string;status:string}[]};
+export default function ControllerRecovery({onClose,onChanged}:{onClose:()=>void;onChanged:()=>void}){
+ const [data,setData]=useState<Recovery|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(false),[busy,setBusy]=useState(false),[target,setTarget]=useState(''),[reason,setReason]=useState(''),[done,setDone]=useState(false);const request=useRef(uid());
+ const refresh=useCallback(async()=>{setLoading(true);try{setData(await api<Recovery>('/v1/delivery/controller-recovery'));setError('');}catch(e){setError(errorText(e));}finally{setLoading(false);}},[]);
+ useEffect(()=>{void refresh();},[refresh]);
+ async function transfer(){if(!data)return;setBusy(true);setError('');try{await mutation('/v1/delivery/controller-recovery',{id:request.current,target,revision:data.revision,reason:reason.trim()});setDone(true);onChanged();}catch(e){setError(errorText(e));}finally{setBusy(false);}}
+ return <Modal title="总控恢复" wide busy={busy} onClose={onClose}><div className="form-body recovery-panel">{error&&<Notice>{error}</Notice>}{done?<Notice tone="success">总控已切换。未完成批次保持暂停，请核对后逐批继续。</Notice>:<>
+  <div className="recovery-heading"><ShieldCheck size={22}/><div><strong>{data?.name||'读取总控状态'}</strong><span>{data?.runtime?.label||'正在检查'}{data?.health?.at?` · 最近推进 ${time(data.health.at)}`:''}</span></div><button className="button secondary small" disabled={loading||busy} onClick={()=>void refresh()}><RefreshCw size={15}/>{loading?'检查中':'重新检查'}</button></div>
+  {data&&<><div className="recovery-grid"><section><h3>当前工作</h3><strong className="recovery-number">{data.batches.length}<small>个未完成批次</small></strong>{data.batches.length>0&&<ul className="recovery-items">{data.batches.map(b=><li key={b.id}>{b.name}</li>)}</ul>}</section><section><h3>接管检查</h3>{data.blockers.length?<ul className="recovery-items">{data.blockers.slice(0,12).map((b,i)=><li key={i}>{b}</li>)}{data.blockers.length>12&&<li>另有 {data.blockers.length-12} 项待处理</li>}</ul>:<p>没有运行中或待核实的关联任务。</p>}</section></div>
+   <form className="recovery-transfer" onSubmit={e=>{e.preventDefault();void transfer();}}><h3>由其他设备接管</h3><label>接管设备<select aria-label="接管设备" value={target} disabled={busy||!data.canTransfer} onChange={e=>{setTarget(e.target.value);request.current=uid();}}><option value="">选择已就绪的设备</option>{data.candidates.map(c=><option value={c.id} disabled={!c.ready} key={c.id}>{c.name}{c.reason?` · ${c.reason}`:''}</option>)}</select></label><label>接管原因<textarea aria-label="接管原因" value={reason} minLength={6} maxLength={2000} disabled={busy||!data.canTransfer} onChange={e=>{setReason(e.target.value);request.current=uid();}} placeholder="记录原总控故障与已完成的核对"/></label><div className="recovery-confirm"><span>接管后批次保持暂停，已有任务和成果编号保留。</span><button className="button primary" disabled={busy||loading||!data.canTransfer||!target||reason.trim().length<6}>{busy?<Busy/>:<><ArrowRight size={16}/>接管并暂停待核对批次</>}</button></div></form>
+  </>}
+ </>}<footer className="modal-footer"><button className="button secondary" disabled={busy} onClick={onClose}>关闭</button></footer></div></Modal>;
+}
